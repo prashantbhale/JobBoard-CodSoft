@@ -17,13 +17,12 @@ app.use(express.json());
 // 'uploads' folder public karnyasaathi
 app.use("/uploads", express.static("uploads"));
 
-// PostgreSQL Database Connection
+// --- PostgreSQL Database Connection (Updated for Render) ---
 const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_DATABASE,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Cloud DB sathi he garjeche aahe
+  }
 });
 
 pool.connect()
@@ -31,7 +30,6 @@ pool.connect()
   .catch((err) => console.error("Database Connection Error", err.stack));
 
 // --- Nodemailer Setup ---
-// Gmail cha App Password generate karun ithe taak (Spaces vagalun)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
