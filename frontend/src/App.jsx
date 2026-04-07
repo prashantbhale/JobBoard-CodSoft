@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate } f
 import axios from 'axios';
 import './App.css';
 
+// --- Global Backend URL ---
+const API_URL = 'https://jobboard-codsoft.onrender.com';
+
 // --- Shared Footer Component ---
 function Footer() {
   return (
@@ -92,7 +95,7 @@ function CandidateHome({ isAuthenticated, setAuth, user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('http://localhost:5000/jobs')
+    axios.get(`${API_URL}/jobs`)
       .then(res => setJobs(res.data))
       .catch(err => console.error("Error fetching jobs"));
   }, []);
@@ -132,7 +135,7 @@ function CandidateHome({ isAuthenticated, setAuth, user }) {
                   {(!user || user.role === 'candidate') && (
                     <button className="apply-btn" onClick={() => {
                       if (!isAuthenticated) { alert("Please sign in to apply."); navigate('/login'); } 
-                      else { alert("Apply modal opens here!"); }
+                      else { alert("Apply feature is ready!"); }
                     }}>Apply Now</button>
                   )}
                 </div>
@@ -185,7 +188,7 @@ function AuthPage({ setAuth }) {
     e.preventDefault();
     try {
       if (isLogin) {
-        const res = await axios.post('http://localhost:5000/login', { email, password });
+        const res = await axios.post(`${API_URL}/login`, { email, password });
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         setAuth(true);
@@ -197,7 +200,7 @@ function AuthPage({ setAuth }) {
           navigate('/'); // Candidates go to jobs list
         }
       } else {
-        await axios.post('http://localhost:5000/register', { name, email, password, role });
+        await axios.post(`${API_URL}/register`, { name, email, password, role });
         alert("Account Created! Please sign in.");
         setIsLogin(true);
       }
@@ -221,7 +224,6 @@ function AuthPage({ setAuth }) {
                   <label>Full Name</label>
                   <input type="text" onChange={(e) => setName(e.target.value)} required />
                 </div>
-                {/* THIS IS VERY IMPORTANT FOR NEW EMPLOYERS */}
                 <div className="form-group">
                   <label>Account Type (Crucial)</label>
                   <select value={role} onChange={(e) => setRole(e.target.value)} style={{border: '1px solid var(--accent-indigo)'}}>
@@ -241,7 +243,6 @@ function AuthPage({ setAuth }) {
               <input type="password" onChange={(e) => setPassword(e.target.value)} required />
             </div>
             
-            {/* Fixed the weird text issue to a clean unicode arrow */}
             <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '10px', padding: '14px'}}>
               {isLogin ? 'Continue →' : 'Create Account'}
             </button>
@@ -280,7 +281,7 @@ function PostJobPage({ isAuthenticated, setAuth, user }) {
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/jobs', { ...formData, employer_id: user.id });
+      await axios.post(`${API_URL}/jobs`, { ...formData, employer_id: user.id });
       alert("Job posted successfully!");
       navigate('/dashboard');
     } catch (err) { alert("Job posting failed"); }
@@ -364,7 +365,7 @@ function Dashboard({ isAuthenticated, setAuth, user }) {
         ? `/employer/jobs/${user.id}`
         : `/candidate/applications/${user.id}`;
       
-      axios.get(`http://localhost:5000${endpoint}`)
+      axios.get(`${API_URL}${endpoint}`)
         .then(res => {
           setDashboardData(res.data);
           setLoading(false);
@@ -419,6 +420,7 @@ function Dashboard({ isAuthenticated, setAuth, user }) {
     </div>
   );
 }
+
 // --- App Entry Point & Router ---
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
