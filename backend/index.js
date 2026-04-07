@@ -49,6 +49,40 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// --- Database Setup API (Run only once) ---
+app.get("/setup", async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        user_id SERIAL PRIMARY KEY,
+        name VARCHAR(100),
+        email VARCHAR(100) UNIQUE,
+        password_hash VARCHAR(255),
+        role VARCHAR(50)
+      );
+      CREATE TABLE IF NOT EXISTS jobs (
+        job_id SERIAL PRIMARY KEY,
+        employer_id INTEGER REFERENCES users(user_id),
+        title VARCHAR(200),
+        description TEXT,
+        location VARCHAR(100),
+        posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS applications (
+        application_id SERIAL PRIMARY KEY,
+        job_id INTEGER REFERENCES jobs(job_id),
+        candidate_id INTEGER REFERENCES users(user_id),
+        resume_link VARCHAR(255),
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    res.send("<h2>Database Tables Created Successfully! 🎉</h2><p>You can now post jobs.</p>");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error creating tables: " + err.message);
+  }
+});
+
 // --- 1. User Registration API ---
 app.post("/register", async (req, res) => {
   try {
